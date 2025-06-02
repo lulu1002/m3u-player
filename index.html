@@ -3,105 +3,137 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Reprodutor de Lista M3U</title>
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <title>Reprodutor de Lista M3U - Visual Melhorado</title>
+  <link href="https://vjs.zencdn.net/8.5.2/video-js.css" rel="stylesheet" />
   <style>
+    /* Reset básico */
+    * {
+      box-sizing: border-box;
+    }
     body {
       background: #121212;
       color: #eee;
-      font-family: 'Segoe UI', sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
       padding: 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
+      min-height: 100vh;
     }
     h1 {
-      color: #00bcd4;
+      font-weight: 700;
       margin-bottom: 20px;
+      color: #00bcd4;
+      text-shadow: 0 0 10px #00bcd4aa;
     }
     #container {
       width: 100%;
       max-width: 900px;
       background: #222;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 20px rgba(0,188,212,0.3);
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,188,212,0.4);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
     }
-    textarea, select, button {
-      width: 100%;
-      margin: 10px 0;
-      padding: 10px;
-      border-radius: 6px;
-      border: none;
-      font-size: 1rem;
+    label {
+      font-weight: 600;
+      margin-top: 10px;
+      display: block;
     }
     textarea {
+      width: 100%;
       height: 120px;
+      border-radius: 8px;
+      border: none;
+      padding: 12px;
+      font-size: 1rem;
+      resize: vertical;
       background: #333;
       color: #eee;
       font-family: monospace;
+      box-shadow: inset 0 0 8px #00bcd455;
+      transition: box-shadow 0.3s ease;
+    }
+    textarea:focus {
+      outline: none;
+      box-shadow: inset 0 0 12px #00e5ffcc;
+    }
+    select, button {
+      padding: 12px;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: none;
+      background: #00bcd4;
+      color: #121212;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      box-shadow: 0 4px 15px #00bcd466;
     }
     select {
       background: #333;
       color: #eee;
-    }
-    button {
-      background: #00bcd4;
-      color: #000;
-      font-weight: bold;
+      box-shadow: inset 0 0 8px #00bcd455;
       cursor: pointer;
+    }
+    select:hover, select:focus {
+      box-shadow: inset 0 0 12px #00e5ffcc;
+      outline: none;
     }
     button:hover {
       background: #00acc1;
+      box-shadow: 0 6px 18px #00acc199;
     }
     #player-container {
-      position: relative;
       margin-top: 20px;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 6px 25px rgba(0,188,212,0.7);
     }
-    #loadingIndicator {
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      color: #00bcd4;
-      font-weight: bold;
-      font-size: 1.2rem;
-      display: none;
-      background: rgba(0,0,0,0.7);
-      padding: 10px 20px;
-      border-radius: 8px;
-    }
-    video {
-      width: 100%;
-      max-height: 500px;
-      border-radius: 10px;
-      background: #000;
+    @media (max-width: 600px) {
+      #player-container video {
+        width: 100% !important;
+        height: auto !important;
+      }
+      textarea {
+        height: 100px;
+      }
     }
   </style>
 </head>
 <body>
   <h1>Reprodutor de Lista M3U</h1>
   <div id="container">
-    <label for="m3uInput">Cole sua lista M3U:</label>
-    <textarea id="m3uInput" placeholder="#EXTM3U..."></textarea>
+    <label for="m3uInput">Cole o conteúdo da sua lista M3U abaixo:</label>
+    <textarea id="m3uInput" placeholder="#EXTM3U ..."></textarea>
     <button onclick="parseM3U()">Carregar Canais</button>
 
-    <label for="categorySelect">Categoria:</label>
+    <label for="categorySelect">Filtrar por Categoria:</label>
     <select id="categorySelect" onchange="filterByCategory()">
-      <option value="">Todas</option>
+      <option value="">Todas as categorias</option>
     </select>
 
-    <label for="channelList">Canais:</label>
+    <label for="channelList">Selecione um Canal:</label>
     <select id="channelList" onchange="loadChannel()">
       <option value="">Selecione um canal</option>
     </select>
 
     <div id="player-container">
-      <div id="loadingIndicator">Carregando...</div>
-      <video id="videoPlayer" controls autoplay></video>
+      <video
+        id="videoPlayer"
+        class="video-js vjs-default-skin"
+        controls
+        preload="auto"
+        width="800"
+        height="450"
+      ></video>
     </div>
   </div>
 
+  <script src="https://vjs.zencdn.net/8.5.2/video.min.js"></script>
   <script>
     let channels = [];
     let filteredChannels = [];
@@ -109,7 +141,7 @@
     function parseM3U() {
       const input = document.getElementById('m3uInput').value.trim();
       if (!input) {
-        alert("Cole a lista M3U primeiro.");
+        alert("Por favor, cole o conteúdo da lista M3U.");
         return;
       }
 
@@ -118,91 +150,83 @@
 
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
-        if (line.startsWith("#EXTINF")) {
-          const title = (line.match(/,(.*)$/) || [])[1]?.trim() || "Sem nome";
-          const group = (line.match(/group-title="([^"]+)"/i) || [])[1] || "Sem Categoria";
-          const url = lines[i + 1]?.trim();
-          if (url && url.startsWith("http")) {
-            channels.push({ title, url, group });
+
+        if (line.startsWith('#EXTINF')) {
+          const titleMatch = line.match(/,(.*)$/);
+          const title = titleMatch ? titleMatch[1].trim() : "Sem nome";
+
+          const groupMatch = line.match(/group-title="([^"]+)"/i);
+          const group = groupMatch ? groupMatch[1] : "Sem Categoria";
+
+          const urlLine = (lines[i + 1] || '').trim();
+          if (urlLine && (urlLine.startsWith('http') || urlLine.startsWith('rtmp') || urlLine.startsWith('https'))) {
+            channels.push({
+              title: title,
+              url: urlLine,
+              group: group
+            });
           }
         }
+      }
+
+      if (channels.length === 0) {
+        alert("Nenhum canal válido encontrado na lista M3U.");
+        return;
       }
 
       filteredChannels = [...channels];
       populateCategories();
       updateChannelList(filteredChannels);
-
       alert(`Encontrado(s) ${channels.length} canal(is).`);
     }
 
     function populateCategories() {
-      const select = document.getElementById('categorySelect');
+      const categorySelect = document.getElementById('categorySelect');
       const groups = [...new Set(channels.map(c => c.group))].sort();
-      select.innerHTML = '<option value="">Todas</option>';
+
+      categorySelect.innerHTML = '<option value="">Todas as categorias</option>';
       groups.forEach(group => {
         const option = document.createElement('option');
         option.value = group;
         option.textContent = group;
-        select.appendChild(option);
+        categorySelect.appendChild(option);
       });
     }
 
     function filterByCategory() {
-      const cat = document.getElementById('categorySelect').value;
-      filteredChannels = cat ? channels.filter(c => c.group === cat) : [...channels];
+      const selectedCategory = document.getElementById('categorySelect').value;
+      if (!selectedCategory) {
+        filteredChannels = [...channels];
+      } else {
+        filteredChannels = channels.filter(c => c.group === selectedCategory);
+      }
       updateChannelList(filteredChannels);
     }
 
     function updateChannelList(list) {
-      const select = document.getElementById('channelList');
-      select.innerHTML = '<option value="">Selecione um canal</option>';
-      list.forEach((ch, i) => {
-        const opt = document.createElement('option');
-        opt.value = i;
-        opt.textContent = ch.title;
-        select.appendChild(opt);
+      const channelSelect = document.getElementById('channelList');
+      channelSelect.innerHTML = '<option value="">Selecione um canal</option>';
+
+      list.forEach((channel, idx) => {
+        const option = document.createElement('option');
+        option.value = idx;
+        option.textContent = channel.title;
+        channelSelect.appendChild(option);
       });
     }
 
     function loadChannel() {
-      const index = document.getElementById('channelList').value;
-      if (index === "") return;
+      const select = document.getElementById('channelList');
+      const index = parseInt(select.value);
 
-      const channel = filteredChannels[parseInt(index)];
-      const video = document.getElementById('videoPlayer');
-      const loading = document.getElementById('loadingIndicator');
-      loading.style.display = 'block';
+      if (isNaN(index)) return;
 
-      if (window.hls) {
-        window.hls.destroy();
-        window.hls = null;
-      }
+      const channel = filteredChannels[index];
+      if (!channel) return;
 
-      if (Hls.isSupported()) {
-        const hls = new Hls();
-        hls.loadSource(channel.url);
-        hls.attachMedia(video);
-        window.hls = hls;
-
-        hls.on(Hls.Events.MANIFEST_PARSED, function () {
-          video.play();
-          loading.style.display = 'none';
-        });
-
-        hls.on(Hls.Events.ERROR, function () {
-          loading.style.display = 'none';
-          alert("Erro ao carregar canal.");
-        });
-      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = channel.url;
-        video.addEventListener('loadedmetadata', function () {
-          video.play();
-          loading.style.display = 'none';
-        });
-      } else {
-        loading.style.display = 'none';
-        alert("Seu navegador não suporta esse tipo de stream.");
-      }
+      const player = videojs('videoPlayer');
+      player.src({ src: channel.url, type: 'application/x-mpegURL' });
+      player.play();
     }
   </script>
 </body>
