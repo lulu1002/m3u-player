@@ -72,3 +72,212 @@
       cursor: pointer;
       transition: background 0.3s ease;
       box-shadow: 0 4px 15px #00bcd466;
+    }
+    select {
+      background: #333;
+      color: #eee;
+      box-shadow: inset 0 0 8px #00bcd455;
+      cursor: pointer;
+    }
+    select:hover, select:focus {
+      box-shadow: inset 0 0 12px #00e5ffcc;
+      outline: none;
+    }
+    button:hover {
+      background: #00acc1;
+      box-shadow: 0 6px 18px #00acc199;
+    }
+    #player-container {
+      margin-top: 20px;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 6px 25px rgba(0,188,212,0.7);
+    }
+    @media (max-width: 600px) {
+      #player-container video {
+        width: 100% !important;
+        height: auto !important;
+      }
+      textarea {
+        height: 100px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Reprodutor de Lista M3U</h1>
+  <div id="container">
+    <label for="m3uInput">Cole o conteúdo da sua lista M3U abaixo:</label>
+    <textarea id="m3uInput" placeholder="#EXTM3U ..."></textarea>
+    <button onclick="parseM3U()">Carregar Canais</button>
+
+    <label for="categorySelect">Filtrar por Categoria:</label>
+    <select id="categorySelect" onchange="filterByCategory()">
+      <option value="">Todas as categorias</option>
+    </select>
+
+    <label for="channelList">Selecione um Canal:</label>
+    <select id="channelList" onchange="loadChannel()">
+      <option value="">Selecione um canal</option>
+    </select>
+
+    <div id="player-container">
+      <div id="player-container" style="position: relative;">
+  <div id="loadingIndicator" style="
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    color: #00bcd4;
+    font-weight: bold;
+    font-size: 1.5rem;
+    display: none;
+    background: rgba(18,18,18,0.8);
+    padding: 10px 20px;
+    border-radius: 8px;
+    z-index: 10;
+  ">Carregando...</div>
+  <video
+    id="videoPlayer"
+    class="video-js vjs-default-skin"
+    controls
+    preload="auto"
+    width="800"
+    height="450"
+  ></video>
+</div>
+
+      
+      <video
+        id="videoPlayer"
+        class="video-js vjs-default-skin"
+        controls
+        preload="auto"
+        width="800"
+        height="450"
+      ></video>
+    </div>
+  </div>
+
+  <script src="https://vjs.zencdn.net/8.5.2/video.min.js"></script>
+  <script>
+    let channels = [];
+    let filteredChannels = [];
+
+    function parseM3U() {
+      const input = document.getElementById('m3uInput').value.trim();
+      if (!input) {
+        alert("Por favor, cole o conteúdo da lista M3U.");
+        return;
+      }
+
+      const lines = input.split(/\r?\n/);
+      channels = [];
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+
+        if (line.startsWith('#EXTINF')) {
+          const titleMatch = line.match(/,(.*)$/);
+          const title = titleMatch ? titleMatch[1].trim() : "Sem nome";
+
+          const groupMatch = line.match(/group-title="([^"]+)"/i);
+          const group = groupMatch ? groupMatch[1] : "Sem Categoria";
+
+          const urlLine = (lines[i + 1] || '').trim();
+          if (urlLine && (urlLine.startsWith('http') || urlLine.startsWith('rtmp') || urlLine.startsWith('https'))) {
+            channels.push({
+              title: title,
+              url: urlLine,
+              group: group
+            });
+          }
+        }
+      }
+
+      if (channels.length === 0) {
+        alert("Nenhum canal válido encontrado na lista M3U.");
+        return;
+      }
+
+      filteredChannels = [...channels];
+      populateCategories();
+      updateChannelList(filteredChannels);
+      alert(`Encontrado(s) ${channels.length} canal(is).`);
+    }
+
+    function populateCategories() {
+      const categorySelect = document.getElementById('categorySelect');
+      const groups = [...new Set(channels.map(c => c.group))].sort();
+
+      categorySelect.innerHTML = '<option value="">Todas as categorias</option>';
+      groups.forEach(group => {
+        const option = document.createElement('option');
+        option.value = group;
+        option.textContent = group;
+        categorySelect.appendChild(option);
+      });
+    }
+
+    function filterByCategory() {
+      const selectedCategory = document.getElementById('categorySelect').value;
+      if (!selectedCategory) {
+        filteredChannels = [...channels];
+      } else {
+        filteredChannels = channels.filter(c => c.group === selectedCategory);
+      }
+      updateChannelList(filteredChannels);
+    }
+
+    function updateChannelList(list) {
+      const channelSelect = document.getElementById('channelList');
+      channelSelect.innerHTML = '<option value="">Selecione um canal</option>';
+
+      list.forEach((channel, idx) => {
+        const option = document.createElement('option');
+        option.value = idx;
+        option.textContent = channel.title;
+        channelSelect.appendChild(option);
+      });
+    }
+
+    function loadChannel() {
+  const select = document.getElementById('channelList');
+  const index = parseInt(select.value);
+  if (isNaN(index)) return;
+
+  const channel = filteredChannels[index];
+  if (!channel) return;
+
+  const loading = document.getElementById('loadingIndicator');
+  loading.style.display = 'block'; // mostra "Carregando..."
+
+  const player = videojs('videoPlayer');
+
+  // Limpar fontes anteriores
+  player.reset();
+
+  // Define a nova fonte
+  player.src({ src: channel.url, type: 'application/x-mpegURL' });
+
+  // Quando o player estiver pronto para reprodução
+  player.ready(() => {
+    player.play().catch(() => {
+      // Pode falhar por autoplay, só ignorar aqui
+    });
+  });
+
+  // Esconde o carregando quando estiver pronto para reproduzir
+  player.on('playing', () => {
+    loading.style.display = 'none';
+  });
+
+  // Em caso de erro, esconde e avisa
+  player.on('error', () => {
+    loading.style.display = 'none';
+    alert('Erro ao carregar o canal. Tente outro.');
+  });
+}
+
+  </script>
+</body>
+</html>
