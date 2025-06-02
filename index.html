@@ -122,10 +122,17 @@
     </select>
 
     <div id="player-container">
-      <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-<video id="videoPlayer" controls autoplay width="800" height="450"></video>
+      <video
+        id="videoPlayer"
+        class="video-js vjs-default-skin"
+        controls
+        preload="auto"
+        width="800"
+        height="450"
+      ></video>
     </div>
   </div>
+
   <script src="https://vjs.zencdn.net/8.5.2/video.min.js"></script>
   <script>
     let channels = [];
@@ -209,40 +216,18 @@
     }
 
     function loadChannel() {
-  const select = document.getElementById('channelList');
-  const index = parseInt(select.value);
-  if (isNaN(index)) return;
+      const select = document.getElementById('channelList');
+      const index = parseInt(select.value);
 
-  const channel = filteredChannels[index];
-  if (!channel) return;
+      if (isNaN(index)) return;
 
-  const video = document.getElementById('videoPlayer');
-  const loading = document.getElementById('loadingIndicator');
-  loading.style.display = 'block';
+      const channel = filteredChannels[index];
+      if (!channel) return;
 
-  if (Hls.isSupported()) {
-    const hls = new Hls();
-    hls.loadSource(channel.url);
-    hls.attachMedia(video);
-    hls.on(Hls.Events.MANIFEST_PARSED, function () {
-      video.play();
-      loading.style.display = 'none';
-    });
-    hls.on(Hls.Events.ERROR, function () {
-      loading.style.display = 'none';
-      alert("Erro ao carregar canal.");
-    });
-  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-    video.src = channel.url;
-    video.addEventListener('loadedmetadata', function () {
-      video.play();
-      loading.style.display = 'none';
-    });
-  } else {
-    alert("Seu navegador não suporta esse tipo de stream.");
-    loading.style.display = 'none';
-  }
-}
+      const player = videojs('videoPlayer');
+      player.src({ src: channel.url, type: 'application/x-mpegURL' });
+      player.play();
+    }
   </script>
 </body>
 </html>
