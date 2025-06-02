@@ -86,4 +86,73 @@
           const urlLine = lines[i + 1] ? lines[i + 1].trim() : '';
           if (urlLine && (urlLine.startsWith('http') || urlLine.startsWith('rtmp'))) {
             channels.push({
-              ti
+              title: title,
+              url: urlLine,
+              group: group
+            });
+          }
+        }
+      }
+
+      if (channels.length === 0) {
+        alert("Nenhum canal encontrado na lista M3U.");
+        return;
+      }
+
+      filteredChannels = [...channels];
+      populateCategories();
+      updateChannelList(filteredChannels);
+      alert(`Encontrado(s) ${channels.length} canal(is).`);
+    }
+
+    function populateCategories() {
+      const categorySelect = document.getElementById('categorySelect');
+      const groups = [...new Set(channels.map(c => c.group))].sort();
+
+      categorySelect.innerHTML = '<option value="">Todas as categorias</option>';
+      groups.forEach(group => {
+        const option = document.createElement('option');
+        option.value = group;
+        option.textContent = group;
+        categorySelect.appendChild(option);
+      });
+    }
+
+    function filterByCategory() {
+      const selectedCategory = document.getElementById('categorySelect').value;
+      if (!selectedCategory) {
+        filteredChannels = [...channels];
+      } else {
+        filteredChannels = channels.filter(c => c.group === selectedCategory);
+      }
+      updateChannelList(filteredChannels);
+    }
+
+    function updateChannelList(list) {
+      const channelSelect = document.getElementById('channelList');
+      channelSelect.innerHTML = '<option value="">Selecione um canal</option>';
+
+      list.forEach((channel, idx) => {
+        const option = document.createElement('option');
+        option.value = idx;
+        option.textContent = channel.title;
+        channelSelect.appendChild(option);
+      });
+    }
+
+    function loadChannel() {
+      const select = document.getElementById('channelList');
+      const index = parseInt(select.value);
+
+      if (isNaN(index)) return;
+
+      const channel = filteredChannels[index];
+      if (!channel) return;
+
+      const player = videojs('videoPlayer');
+      player.src({ src: channel.url, type: 'application/x-mpegURL' });
+      player.play();
+    }
+  </script>
+</body>
+</html>
