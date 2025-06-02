@@ -19,20 +19,13 @@
       margin: auto;
       margin-top: 20px;
     }
-    textarea {
-      width: 100%;
-      height: 150px;
-      margin-top: 10px;
-    }
-    button {
-      padding: 10px 20px;
-      margin-top: 10px;
-      cursor: pointer;
-    }
-    select {
+    textarea, input, select, button {
       width: 100%;
       padding: 10px;
       margin-top: 10px;
+    }
+    button {
+      cursor: pointer;
     }
   </style>
 </head>
@@ -42,6 +35,10 @@
     <p>Cole abaixo o conteúdo da sua lista M3U:</p>
     <textarea id="m3uInput" placeholder="#EXTM3U..."></textarea>
     <button onclick="parseM3U()">Carregar Canais</button>
+
+    <select id="categorySelect" onchange="filterByCategory()">
+      <option value="">Todas as categorias</option>
+    </select>
 
     <select id="channelList" onchange="loadChannel()">
       <option value="">Selecione um canal</option>
@@ -55,6 +52,7 @@
   <script src="https://vjs.zencdn.net/8.5.2/video.min.js"></script>
   <script>
     let channels = [];
+    let filteredChannels = [];
 
     function parseM3U() {
       const input = document.getElementById('m3uInput').value;
@@ -63,37 +61,23 @@
 
       for (let i = 0; i < lines.length; i++) {
         if (lines[i].startsWith('#EXTINF')) {
-          const title = lines[i].split(',')[1]?.trim() || "Sem nome";
+          const infoLine = lines[i];
+          const title = infoLine.split(',')[1]?.trim() || "Sem nome";
+          const groupMatch = infoLine.match(/group-title="([^"]+)"/i);
+          const group = groupMatch ? groupMatch[1] : "Sem Categoria";
           const url = lines[i + 1]?.trim();
+
           if (url && url.startsWith('http')) {
-            channels.push({ title, url });
+            channels.push({ title, url, group });
           }
         }
       }
 
-      const select = document.getElementById('channelList');
-      select.innerHTML = '<option value="">Selecione um canal</option>';
-      channels.forEach((channel, index) => {
-        const opt = document.createElement('option');
-        opt.value = index;
-        opt.textContent = channel.title;
-        select.appendChild(opt);
-      });
-
+      filteredChannels = [...channels];
+      populateCategories();
+      updateChannelList(filteredChannels);
       alert(`Encontrado(s) ${channels.length} canal(is).`);
     }
 
-    function loadChannel() {
-      const index = document.getElementById('channelList').value;
-      if (index === '') return;
-
-      const channel = channels[index];
-      if (!channel) return;
-
-      const player = videojs('videoPlayer');
-      player.src({ src: channel.url, type: 'application/x-mpegURL' });
-      player.play();
-    }
-  </script>
-</body>
-</html>
+    function populateCategories() {
+      const categorySelect = document.getElementById('categorySelect');
