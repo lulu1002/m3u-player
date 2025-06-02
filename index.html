@@ -18,7 +18,7 @@
       max-width: 800px;
       margin: 20px auto 0;
     }
-    textarea, input, select, button {
+    textarea, select, button {
       width: 100%;
       padding: 10px;
       margin-top: 10px;
@@ -75,27 +75,33 @@
         const line = lines[i].trim();
 
         if (line.startsWith('#EXTINF')) {
-          // Exemplo de linha:
-          // #EXTINF:-1 tvg-id="ChannelID" tvg-name="Channel Name" group-title="Categoria",Nome do Canal
+          console.log("Linha EXTINF encontrada:", line);
+
+          // Extração do título (após a vírgula)
           const titleMatch = line.match(/,(.*)$/);
-          const groupMatch = line.match(/group-title="([^"]+)"/i);
-          const group = groupMatch ? groupMatch[1] : "Sem Categoria";
           const title = titleMatch ? titleMatch[1].trim() : "Sem nome";
 
-          // A URL geralmente está na linha seguinte
-          const urlLine = lines[i + 1] ? lines[i + 1].trim() : '';
-          if (urlLine && (urlLine.startsWith('http') || urlLine.startsWith('rtmp'))) {
+          // Extração do group-title, se existir
+          const groupMatch = line.match(/group-title="([^"]+)"/i);
+          const group = groupMatch ? groupMatch[1] : "Sem Categoria";
+
+          // A URL deve estar na linha seguinte
+          const urlLine = (lines[i + 1] || '').trim();
+          if (urlLine && (urlLine.startsWith('http') || urlLine.startsWith('rtmp') || urlLine.startsWith('https'))) {
             channels.push({
               title: title,
               url: urlLine,
               group: group
             });
+            console.log("Canal adicionado:", { title, url: urlLine, group });
+          } else {
+            console.warn("Linha de URL inválida ou ausente para canal:", title);
           }
         }
       }
 
       if (channels.length === 0) {
-        alert("Nenhum canal encontrado na lista M3U.");
+        alert("Nenhum canal válido encontrado na lista M3U.");
         return;
       }
 
