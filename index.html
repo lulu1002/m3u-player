@@ -122,11 +122,10 @@
     </select>
 
     <div id="player-container">
-      <video id="videoPlayer" controls autoplay width="800" height="450"></video>
+<video id="videoPlayer" controls autoplay width="800" height="450"></video>
     </div>
   </div>
-
-  <script src="https://vjs.zencdn.net/8.5.2/video.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <script>
     let channels = [];
     let filteredChannels = [];
@@ -209,19 +208,40 @@
     }
 
     function loadChannel() {
-      const select = document.getElementById('channelList');
-      const index = parseInt(select.value);
+  const select = document.getElementById('channelList');
+  const index = parseInt(select.value);
+  if (isNaN(index)) return;
 
-      if (isNaN(index)) return;
+  const channel = filteredChannels[index];
+  if (!channel) return;
 
-      const channel = filteredChannels[index];
-      if (!channel) return;
+  const video = document.getElementById('videoPlayer');
+  const loading = document.getElementById('loadingIndicator');
+  loading.style.display = 'block';
 
-      const player = document.getElementById('videoPlayer');
-player.src = channel.url;
-player.load();
-player.play();
-    }
+  if (Hls.isSupported()) {
+    const hls = new Hls();
+    hls.loadSource(channel.url);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, function () {
+      video.play();
+      loading.style.display = 'none';
+    });
+    hls.on(Hls.Events.ERROR, function () {
+      loading.style.display = 'none';
+      alert("Erro ao carregar canal.");
+    });
+  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = channel.url;
+    video.addEventListener('loadedmetadata', function () {
+      video.play();
+      loading.style.display = 'none';
+    });
+  } else {
+    alert("Seu navegador não suporta esse tipo de stream.");
+    loading.style.display = 'none';
+  }
+}
   </script>
 </body>
 </html>
