@@ -3,43 +3,115 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Reprodutor de Lista M3U com Categorias</title>
+  <title>Reprodutor de Lista M3U - Visual Melhorado</title>
   <link href="https://vjs.zencdn.net/8.5.2/video-js.css" rel="stylesheet" />
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background: #f0f0f0;
-    }
-    h1 {
-      text-align: center;
-    }
-    #player-container {
-      max-width: 800px;
-      margin: 20px auto 0;
-    }
-    textarea, select, button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
+    /* Reset básico */
+    * {
       box-sizing: border-box;
     }
-    button {
+    body {
+      background: #121212;
+      color: #eee;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    h1 {
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: #00bcd4;
+      text-shadow: 0 0 10px #00bcd4aa;
+    }
+    #container {
+      width: 100%;
+      max-width: 900px;
+      background: #222;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,188,212,0.4);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    textarea {
+      width: 100%;
+      height: 120px;
+      border-radius: 8px;
+      border: none;
+      padding: 12px;
+      font-size: 1rem;
+      resize: vertical;
+      background: #333;
+      color: #eee;
+      font-family: monospace;
+      box-shadow: inset 0 0 8px #00bcd455;
+      transition: box-shadow 0.3s ease;
+    }
+    textarea:focus {
+      outline: none;
+      box-shadow: inset 0 0 12px #00e5ffcc;
+    }
+    select, button {
+      padding: 12px;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: none;
+      background: #00bcd4;
+      color: #121212;
+      font-weight: 600;
       cursor: pointer;
+      transition: background 0.3s ease;
+      box-shadow: 0 4px 15px #00bcd466;
+    }
+    select {
+      background: #333;
+      color: #eee;
+      box-shadow: inset 0 0 8px #00bcd455;
+      cursor: pointer;
+    }
+    select:hover, select:focus {
+      box-shadow: inset 0 0 12px #00e5ffcc;
+      outline: none;
+    }
+    button:hover {
+      background: #00acc1;
+      box-shadow: 0 6px 18px #00acc199;
+    }
+    #player-container {
+      margin-top: 20px;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 6px 25px rgba(0,188,212,0.7);
+    }
+    @media (max-width: 600px) {
+      #player-container video {
+        width: 100% !important;
+        height: auto !important;
+      }
+      textarea {
+        height: 100px;
+      }
     }
   </style>
 </head>
 <body>
   <h1>Reprodutor de Lista M3U</h1>
-  <div style="max-width: 800px; margin: auto;">
-    <p>Cole o conteúdo da sua lista M3U abaixo:</p>
+  <div id="container">
+    <label for="m3uInput">Cole o conteúdo da sua lista M3U abaixo:</label>
     <textarea id="m3uInput" placeholder="#EXTM3U ..."></textarea>
     <button onclick="parseM3U()">Carregar Canais</button>
 
+    <label for="categorySelect">Filtrar por Categoria:</label>
     <select id="categorySelect" onchange="filterByCategory()">
       <option value="">Todas as categorias</option>
     </select>
 
+    <label for="channelList">Selecione um Canal:</label>
     <select id="channelList" onchange="loadChannel()">
       <option value="">Selecione um canal</option>
     </select>
@@ -75,17 +147,12 @@
         const line = lines[i].trim();
 
         if (line.startsWith('#EXTINF')) {
-          console.log("Linha EXTINF encontrada:", line);
-
-          // Extração do título (após a vírgula)
           const titleMatch = line.match(/,(.*)$/);
           const title = titleMatch ? titleMatch[1].trim() : "Sem nome";
 
-          // Extração do group-title, se existir
           const groupMatch = line.match(/group-title="([^"]+)"/i);
           const group = groupMatch ? groupMatch[1] : "Sem Categoria";
 
-          // A URL deve estar na linha seguinte
           const urlLine = (lines[i + 1] || '').trim();
           if (urlLine && (urlLine.startsWith('http') || urlLine.startsWith('rtmp') || urlLine.startsWith('https'))) {
             channels.push({
@@ -93,9 +160,6 @@
               url: urlLine,
               group: group
             });
-            console.log("Canal adicionado:", { title, url: urlLine, group });
-          } else {
-            console.warn("Linha de URL inválida ou ausente para canal:", title);
           }
         }
       }
