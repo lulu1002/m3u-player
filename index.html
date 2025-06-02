@@ -5,104 +5,91 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Reprodutor de Lista M3U - Visual Melhorado</title>
   <link href="https://vjs.zencdn.net/8.5.2/video-js.css" rel="stylesheet" />
-  <style>
-    /* Reset básico */
-    * {
-      box-sizing: border-box;
-    }
-    body {
-      background: #121212;
-      color: #eee;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-    }
-    h1 {
-      font-weight: 700;
-      margin-bottom: 20px;
-      color: #00bcd4;
-      text-shadow: 0 0 10px #00bcd4aa;
-    }
-    #container {
-      width: 100%;
-      max-width: 900px;
-      background: #222;
-      padding: 25px;
-      border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(0,188,212,0.4);
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-    label {
-      font-weight: 600;
-      margin-top: 10px;
-      display: block;
-    }
-    textarea {
-      width: 100%;
-      height: 120px;
-      border-radius: 8px;
-      border: none;
-      padding: 12px;
-      font-size: 1rem;
-      resize: vertical;
-      background: #333;
-      color: #eee;
-      font-family: monospace;
-      box-shadow: inset 0 0 8px #00bcd455;
-      transition: box-shadow 0.3s ease;
-    }
-    textarea:focus {
-      outline: none;
-      box-shadow: inset 0 0 12px #00e5ffcc;
-    }
-    select, button {
-      padding: 12px;
-      font-size: 1rem;
-      border-radius: 8px;
-      border: none;
-      background: #00bcd4;
-      color: #121212;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.3s ease;
-      box-shadow: 0 4px 15px #00bcd466;
-    }
-    select {
-      background: #333;
-      color: #eee;
-      box-shadow: inset 0 0 8px #00bcd455;
-      cursor: pointer;
-    }
-    select:hover, select:focus {
-      box-shadow: inset 0 0 12px #00e5ffcc;
-      outline: none;
-    }
-    button:hover {
-      background: #00acc1;
-      box-shadow: 0 6px 18px #00acc199;
-    }
-    #player-container {
-      margin-top: 20px;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 6px 25px rgba(0,188,212,0.7);
-    }
-    @media (max-width: 600px) {
-      #player-container video {
-        width: 100% !important;
-        height: auto !important;
-      }
-      textarea {
-        height: 100px;
-      }
-    }
-  </style>
+<style>
+  body {
+    background: url('data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/4QB0RXhpZgAATU0AKgAAAAgABQEaAAUAAAABAAAASgEbAAUAAAABAAAAUgEoAAMAAAABAAIAAAITAAMAAAABAAEAAMb+AAIAAAA...') no-repeat center center fixed;
+    background-size: cover;
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  h1 {
+    color: #00bcd4;
+    margin-bottom: 20px;
+    text-shadow: 1px 1px 3px #000;
+  }
+
+  #container {
+    width: 100%;
+    max-width: 900px;
+    background: rgba(18, 18, 18, 0.85);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0,188,212,0.3);
+  }
+
+  textarea, select, button {
+    width: 100%;
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 6px;
+    border: none;
+    font-size: 1rem;
+  }
+
+  textarea {
+    height: 120px;
+    background: #333;
+    color: #eee;
+    font-family: monospace;
+  }
+
+  select {
+    background: #333;
+    color: #eee;
+  }
+
+  button {
+    background: #00bcd4;
+    color: #000;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background: #00acc1;
+  }
+
+  #player-container {
+    position: relative;
+    margin-top: 20px;
+  }
+
+  #loadingIndicator {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    color: #00bcd4;
+    font-weight: bold;
+    font-size: 1.2rem;
+    display: none;
+    background: rgba(0,0,0,0.7);
+    padding: 10px 20px;
+    border-radius: 8px;
+  }
+
+  video {
+    width: 100%;
+    max-height: 500px;
+    border-radius: 10px;
+    background: #000;
+  }
+</style>
+
 </head>
 <body>
   <h1>Reprodutor de Lista M3U</h1>
