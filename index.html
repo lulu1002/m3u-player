@@ -122,28 +122,14 @@
     </select>
 
     <div id="player-container">
-      <div id="loadingIndicator" style="
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    color: #00bcd4;
-    font-weight: bold;
-    font-size: 1.5rem;
-    display: none;
-    background: rgba(18,18,18,0.8);
-    padding: 10px 20px;
-    border-radius: 8px;
-    z-index: 10;
-  ">Carregando...</div>
-      <div id="player-container" style="position: relative;">
-  <video
-    id="videoPlayer"
-    class="video-js vjs-default-skin"
-    controls
-    preload="auto"
-    width="800"
-    height="450"
-  ></video>
+      <video
+        id="videoPlayer"
+        class="video-js vjs-default-skin"
+        controls
+        preload="auto"
+        width="800"
+        height="450"
+      ></video>
     </div>
   </div>
 
@@ -230,43 +216,18 @@
     }
 
     function loadChannel() {
-  const select = document.getElementById('channelList');
-  const index = parseInt(select.value);
-  if (isNaN(index)) return;
+      const select = document.getElementById('channelList');
+      const index = parseInt(select.value);
 
-  const channel = filteredChannels[index];
-  if (!channel) return;
+      if (isNaN(index)) return;
 
-  const loading = document.getElementById('loadingIndicator');
-  loading.style.display = 'block'; // mostra "Carregando..."
+      const channel = filteredChannels[index];
+      if (!channel) return;
 
-  const player = videojs('videoPlayer');
-
-  // Limpar fontes anteriores
-  player.reset();
-
-  // Define a nova fonte
-  player.src({ src: channel.url, type: 'application/x-mpegURL' });
-
-  // Quando o player estiver pronto para reprodução
-  player.ready(() => {
-    player.play().catch(() => {
-      // Pode falhar por autoplay, só ignorar aqui
-    });
-  });
-
-  // Esconde o carregando quando estiver pronto para reproduzir
-  player.on('playing', () => {
-    loading.style.display = 'none';
-  });
-
-  // Em caso de erro, esconde e avisa
-  player.on('error', () => {
-    loading.style.display = 'none';
-    alert('Erro ao carregar o canal. Tente outro.');
-  });
-}
-
+      const player = videojs('videoPlayer');
+      player.src({ src: channel.url, type: 'application/x-mpegURL' });
+      player.play();
+    }
   </script>
 </body>
 </html>
